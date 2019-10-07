@@ -1,24 +1,22 @@
 import argparse
 
-import pygrib
+import Nio
 
 
 def print_variables_for_single_coordinate(filepath, lat, lon):
-    grib = pygrib.open(filepath)
+    file = Nio.open_file(filepath, mode='r', format='grib')
 
-    # Print an inventory of all messages in the grib file.
-    for msg in grib:
-        print(msg)
-        print(msg.data(lat1=lat, lat2=lat, lon1=lon, lon2=lon)[0][0][0])
+    # Retrieve the temperature field from the file variables.
+    temperature_field = file.variables['TMP_P0_L103_GLL0']
+    precipitation_field = file.variables['APCP_P8_L1_GLL0_acc']
 
-    # Select only the temperature message.
-    temperature_message = grib.select(name='2 metre temperature')[0]
-
-    print(temperature_message.data(lat1=lat, lat2=lat, lon1=lon, lon2=lon)[0][0][0])
+    # Using NIO Extended Selection, select the value for the given lat/lon.
+    print(temperature_field['lat_0|%s lon_0|%s' % (lat, lon)])
+    print(precipitation_field['lat_0|%s lon_0|%s' % (lat, lon)])
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Open a grib2 file using pygrib')
+    parser = argparse.ArgumentParser(description='Open a grib2 file using pynio')
     parser.add_argument('filepath', type=str,
                         help='The path to the file to open')
     parser.add_argument('--lat', type=float, default='49.6',

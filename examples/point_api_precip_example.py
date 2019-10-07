@@ -9,8 +9,6 @@ from urllib.parse import urljoin
 import requests
 from tabulate import tabulate
 
-from conversions import wind_direction_from_u_v, wind_speed_from_u_v
-
 HOST = 'https://api.wx.spire.com'
 API_KEY = os.getenv('spire-api-key')
 
@@ -18,10 +16,6 @@ API_KEY = os.getenv('spire-api-key')
 def print_point_api_response(api_key, lat, lon):
     """
     Fetch the forecast data and print it out for a given lat/lon.
-    :param api_key: 
-    :param lat: 
-    :param lon: 
-    :return: 
     """
 
     print(f'Retrieving forecast for point ({lat},{lon})')
@@ -41,22 +35,20 @@ def print_point_api_response(api_key, lat, lon):
 
     # Build up a list of the values we want to print out from the response.
     tabular_data = []
+    previous_precip_total = 0
     for entry in data:
-        issuance_time = entry['times']['issuance_time']
         valid_time = entry['times']['valid_time']
-        values = entry['values']
-        air_temp = values.get('air_temperature')
-        wind_u = values.get('eastward_wind')
-        wind_v = values.get('northward_wind')
 
-        # Convert the wind vectors to wind speed and direction.
-        wind_direction = wind_direction_from_u_v(wind_u, wind_v)
-        wind_speed = wind_speed_from_u_v(wind_u, wind_v)
+        # The precipitation amounts are accumulated throughout the forecast, if we want to find the amount it will precipitate
+        # during each lead time window, we need find the delta for that time.
+        current_precip_total = entry['values']['precipitation_amount']
+        precip_amount = current_precip_total - previous_precip_total
+        previous_precip_total = current_precip_total
 
-        tabular_data.append([issuance_time, valid_time, air_temp, wind_speed, wind_direction])
+        tabular_data.append([valid_time, precip_amount])
 
     # Using the tabulate library, print out the values we have collected above in a friendly format.
-    print(tabulate(tabular_data, headers=['issuance_time', 'valid_time', 'air_temperature', 'wind_speed', 'wind_direction']))
+    print(tabulate(tabular_data, headers=['valid_time', 'precipitation_amount']))
 
 
 if __name__ == '__main__':
