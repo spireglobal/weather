@@ -1,5 +1,6 @@
 """
-A simple example of retrieving the forecast for a single point and printing out in a human readable format.
+A simple example of retrieving the forecast for a single point and printing out in a human readable format
+for more or more product bundles.
 """
 import argparse
 
@@ -14,8 +15,9 @@ def print_point_api_response(lat, lon, bundles='basic'):
     # Build up a list of the values we want to print out from the response.
     data = []
     headers = []
-    for entry in get_point_api_response(lat, lon, bundles=bundles, time_bundle='medium_range_high_freq'):
-        # The dict is unsorted by default, this could cause issues as we iterate over each entry, so we make sure they are all sorted the same.
+    for entry in get_point_api_response(lat, lon, bundles=bundles, time_bundle='medium_range_std_freq'):
+        # The dict is unsorted by default which could cause issues as we iterate over each entry,
+        # so ensure they are sorted identically.
         sorted_values = sorted(entry['values'])
 
         issuance_time = entry['times']['issuance_time']
@@ -33,13 +35,13 @@ def print_point_api_response(lat, lon, bundles='basic'):
 
 if __name__ == '__main__':
     # Define our command line arguments
-    parser = argparse.ArgumentParser(description='Print forecasted temperatures for a point')
-    parser.add_argument('--lat', type=float, default='49.6',
+    parser = argparse.ArgumentParser(description='Print forecast data at a point for one or more bundles')
+    parser.add_argument('--lat', type=float, default=49.6,
                         help='The latitude of the point')
-    parser.add_argument('--lon', type=float, default='6.1',
+    parser.add_argument('--lon', type=float, default=6.1,
                         help='The longitude of the point')
     parser.add_argument('--bundles', type=str, default='basic',
-                        help='The bundles to include in csv format')
+                        help='The bundles to include separated by commas')
 
     # Parse the command line arguments and invoke the function.
     args = parser.parse_args()

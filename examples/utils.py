@@ -10,7 +10,7 @@ HOST = 'https://api.wx.spire.com'
 def get_api_key():
     api_key = os.getenv('spire-api-key')
     if not api_key:
-        raise Exception('API_KEY environment variable is not set.')
+        raise Exception('spire-api-key environment variable is not set.')
 
     return api_key
 

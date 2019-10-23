@@ -1,3 +1,9 @@
+"""
+Example of how to use the Spire Weather File API to download all GRIB files for a particular product
+bundle and time bundle. This code is set up to download all data files once the full forecast has
+finished rather than individual files as they populate the API.
+
+"""
 import argparse
 import os
 from urllib.parse import urljoin
@@ -11,7 +17,7 @@ API_KEY = os.getenv('spire-api-key')
 def download_complete_issuance(api_key, output_directory=None):
     # Build the URL, add the headers and query parameters.
     url = urljoin(HOST, '/forecast/file')
-    params = {'bundles': 'basic', 'time_bundle': 'medium_range_high_freq'}
+    params = {'bundles': 'basic', 'time_bundle': 'medium_range_std_freq'}
     headers = {'spire-api-key': api_key}
     response = requests.get(url, headers=headers, params=params)
 
@@ -21,7 +27,10 @@ def download_complete_issuance(api_key, output_directory=None):
 
     file_list = json_response['files']
 
-    expected_number_of_files = 49
+    # The medium range, standard time frequency bundle contains data for 29 lead times (or steps)
+    # representing forecasts at six hour intervals from 0 to 168 hours.
+    # Only perform the download once the complete forecast dataset is available.
+    expected_number_of_files = 29
     if len(file_list) == expected_number_of_files:
         for forecast in file_list:
             if output_directory:
@@ -31,7 +40,8 @@ def download_complete_issuance(api_key, output_directory=None):
 
             print('Downloading: %s to %s' % (forecast, output_file_path))
 
-            # Retrieve the file content
+            # Retrieve the file content.
+            # NB: No checking is performed to skip downloading previously downloaded data files.
             single_file_url = urljoin(HOST, '/forecast/file/') + forecast
             download_file_response = requests.get(single_file_url, headers=headers, allow_redirects=True)
 
@@ -44,11 +54,11 @@ def download_complete_issuance(api_key, output_directory=None):
 
 if __name__ == '__main__':
     if not API_KEY:
-        raise Exception('API_KEY environment variable is not set.')
+        raise Exception('spire-api-key environment variable is not set.')
 
     parser = argparse.ArgumentParser(description='Download all forecast files')
     parser.add_argument('--output_directory', type=str,
-                        help='The directory to download the files')
+                        help='The directory to download the files into')
 
     args = parser.parse_args()
     download_complete_issuance(API_KEY, args.output_directory)

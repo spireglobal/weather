@@ -1,6 +1,8 @@
 """
-A simple example of retrieving the forecast for a single point and printing out in a human readable format.
-Including converting the wind u and v fields to wind speed and direction.
+The Spire Weather Point API gives forecast-total accumulated precipitation values since the start of
+the forecast rather than fixed interval accumulations such as 6 hour or 24 hour values. This example
+shows how a user could create 6-hour accumulations from the forecast-total value by differencing
+the totals from adjacant lead times.
 """
 import argparse
 import os
@@ -39,8 +41,7 @@ def print_point_api_response(api_key, lat, lon):
     for entry in data:
         valid_time = entry['times']['valid_time']
 
-        # The precipitation amounts are accumulated throughout the forecast, if we want to find the amount it will precipitate
-        # during each lead time window, we need find the delta for that time.
+        # Create the accumulation during the period between the previous output time and the current one.
         current_precip_total = entry['values']['precipitation_amount']
         precip_amount = current_precip_total - previous_precip_total
         previous_precip_total = current_precip_total
@@ -53,13 +54,13 @@ def print_point_api_response(api_key, lat, lon):
 
 if __name__ == '__main__':
     if not API_KEY:
-        raise Exception('API_KEY environment variable is not set.')
+        raise Exception('spire-api-key environment variable is not set.')
 
     # Define our command line arguments
-    parser = argparse.ArgumentParser(description='Print forecasted temperatures for a point')
-    parser.add_argument('--lat', type=float, default='49.6',
+    parser = argparse.ArgumentParser(description='Print forecast precipitation for a point')
+    parser.add_argument('--lat', type=float, default=49.6,
                         help='The latitude of the point')
-    parser.add_argument('--lon', type=float, default='6.1',
+    parser.add_argument('--lon', type=float, default=6.1,
                         help='The longitude of the point')
 
     # Parse the command line arguments and invoke the function.

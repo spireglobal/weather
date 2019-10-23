@@ -14,7 +14,7 @@ def wind_direction_from_u_v(u, v):
       360° wind from north.
       0° is used for no wind.
     """
-    if (u, v) == (0, 0):
-        return 0
+    if (u, v) == (0.0, 0.0):
+        return 0.0
     else:
-        return (180 / pi) * atan2(u, v) + 180
+        return (180.0 / pi) * atan2(u, v) + 180.0
