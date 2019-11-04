@@ -1,6 +1,6 @@
 """
-A simple example of retrieving the forecast for a single point and printing out in a human readable format.
-Including converting the wind u and v fields to wind speed and direction.
+A simple example of retrieving the forecast for a single point and printing out in a human readable format
+including converting the wind u and v fields to wind speed and direction.
 """
 import argparse
 
@@ -35,10 +35,10 @@ def print_point_api_response(lat, lon):
 
 if __name__ == '__main__':
     # Define our command line arguments
-    parser = argparse.ArgumentParser(description='Print forecasted temperatures for a point')
-    parser.add_argument('--lat', type=float, default='49.6',
+    parser = argparse.ArgumentParser(description='Print forecast data for a point')
+    parser.add_argument('--lat', type=float, default=49.6,
                         help='The latitude of the point')
-    parser.add_argument('--lon', type=float, default='6.1',
+    parser.add_argument('--lon', type=float, default=6.1,
                         help='The longitude of the point')
 
     # Parse the command line arguments and invoke the function.

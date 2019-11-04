@@ -1,3 +1,8 @@
+"""
+Demonstrate how to extract data from several GRIB messages using PyNIO
+
+https://www.pyngl.ucar.edu/Nio.shtml
+"""
 import argparse
 
 import Nio
@@ -16,12 +21,12 @@ def print_variables_for_single_coordinate(filepath, lat, lon):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Open a grib2 file using pynio')
+    parser = argparse.ArgumentParser(description='Extract and print data at a point from a GRIB file using PyNIO')
     parser.add_argument('filepath', type=str,
                         help='The path to the file to open')
-    parser.add_argument('--lat', type=float, default='49.6',
+    parser.add_argument('--lat', type=float, default=49.6,
                         help='The latitude of the point')
-    parser.add_argument('--lon', type=float, default='6.1',
+    parser.add_argument('--lon', type=float, default=6.1,
                         help='The longitude of the point')
 
     args = parser.parse_args()
