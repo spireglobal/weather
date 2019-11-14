@@ -4,7 +4,7 @@ This repository hosts some sample programs to help you get up and running with S
 
 Don't hesitate to consult our full API documentation as you go through these examples:
 
-<developers.wx.spire.com/docs/weather-api/1/overview>
+https://developers.wx.spire.com/
 
 
 ## Dependencies 
