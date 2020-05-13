@@ -1,8 +1,8 @@
 """
-Extract regional values from GRIB messages at one vertical level
+Extract regional values from an Aviation GRIB file at one vertical level
 
-This program extracts temperature data from a GRIB file
-at a single vertical (isobaric) level. It then crops the data
+This program extracts clear-air turbulence data from a GRIB file
+at a single vertical (flight) level. It then crops the data
 to the horizontal area of a provided shapefile.
 """
 import argparse
@@ -37,25 +37,26 @@ def area_filter(latlon):
     # Return flag indicating whether point is in the area
     return point_in_area
 
-# Load and filter grib data to get regional temperature
-# at the specified isobaric level
+# Load and filter grib data to get clear-air turbulence
+# within a region at the specified flight level
 def parse_data(filepath):
     # Load the grib files into an xarray dataset
     ds = xr.open_dataset(filepath, engine='pynio')
+    # Print information on data variables
     # print(ds.keys())
-    # Rename the temperature variable for clarity
-    ds = ds.rename({'TMP_P0_L100_GLL0': 'temperature'})
-    # Get only the temperature values at isobaric levels
+    # Rename the clear-air turbulence variable for clarity
+    ds = ds.rename({'CAT_P0_L102_GLL0': 'turbulence'})
+    # Get only the turbulence values at flight levels
     # to significantly reduce the volume of data right away,
     # otherwise converting to a dataframe will take a long time
-    ds = ds.get('temperature')
+    ds = ds.get('turbulence')
     # Convert the xarray dataset to a dataframe
     df = ds.to_dataframe()
-    # Retrieve isobaric level values
-    isblevels = df.index.get_level_values('lv_ISBL0')
-    # Filter to a specific isobaric level:
-    # 2000 pascal (20 hPa)
-    df = df.loc[(isblevels == 2000)]
+    # Retrieve flight level values
+    flightlevels = df.index.get_level_values('lv_AMSL0')
+    # Filter to a specific flight level:
+    # FL100 = 10000 feet = 3048 meters
+    df = df.loc[(flightlevels == 3048)]
     # Get longitude values from index
     lons = df.index.get_level_values('lon_0')
     # Map longitude range from (0 to 360) into (-180 to 180)
@@ -82,27 +83,25 @@ def parse_data(filepath):
     df['inArea'] = df['point'].map(area_filter)
     # Crop point locations that are not within the shpfile area
     df = df.loc[(df['inArea'] == True)]
-    # Trim the data to just the lat, lon, and temperature columns
-    df_viz = df.loc[:, ['latitude','longitude','temperature']]
-    # Convert from Kelvin to Celsius
-    df_viz['temperature'] = df_viz['temperature'] - 273.15
+    # Trim the data to just the lat, lon, and turbulence columns
+    df_viz = df.loc[:, ['latitude','longitude','turbulence']]
     return df_viz
 
 # Visualize the data
 def plot_data(data):
     x = data['longitude'].values
     y = data['latitude'].values
-    color = data['temperature'].values
+    color = data['turbulence'].values
     plt.scatter(
         x,
         y,
         c=color,
         s=10,
-        cmap='coolwarm',
+        cmap='Spectral_r',
         edgecolors='gray',
         linewidths=0.1
     )
-    plt.title('Temperature (C) at 20 hPa')
+    plt.title('Clear-Air Turbulence % at FL100')
     plt.colorbar()
     plt.show()
 
@@ -111,7 +110,7 @@ if __name__ == '__main__':
         description='Extract regional data from a GRIB file at a single vertical level'
     )
     parser.add_argument(
-        'filepath', type=str, help='The path to the Upper-Air bundle GRIB file to open'
+        'filepath', type=str, help='The path to the Aviation bundle GRIB file to open'
     )
     args = parser.parse_args()
     data = parse_data(args.filepath)
