@@ -13,7 +13,7 @@ from osgeo import ogr
 
 # Load the shapefile area
 driver = ogr.GetDriverByName('ESRI Shapefile')
-shpfile = driver.Open('shpfile/france.shp')
+shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
 # Check if point is inside of shapefile area
@@ -100,7 +100,7 @@ def plot_data(data):
         c=color,
         s=10,
         cmap='coolwarm',
-        edgecolors='gray',
+        # edgecolors='gray',
         linewidths=0.1
     )
     plt.title('Temperature (C) at 20 hPa')

@@ -13,7 +13,7 @@ from osgeo import ogr
 
 # Load the shapefile area
 driver = ogr.GetDriverByName('ESRI Shapefile')
-shpfile = driver.Open('shpfile/france.shp')
+shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
 # Check if point is inside of shapefile area
@@ -55,8 +55,8 @@ def parse_data(filepath):
     # Retrieve flight level values
     flightlevels = df.index.get_level_values('lv_AMSL0')
     # Filter to a specific flight level:
-    # FL100 = 10000 feet = 3048 meters
-    df = df.loc[(flightlevels == 3048)]
+    # FL360 = 36000 feet = 10972 meters
+    df = df.loc[(flightlevels == 10972)]
     # Get longitude values from index
     lons = df.index.get_level_values('lon_0')
     # Map longitude range from (0 to 360) into (-180 to 180)
@@ -98,10 +98,10 @@ def plot_data(data):
         c=color,
         s=10,
         cmap='Spectral_r',
-        edgecolors='gray',
+        # edgecolors='gray',
         linewidths=0.1
     )
-    plt.title('Clear-Air Turbulence % at FL100')
+    plt.title('Clear-Air Turbulence at FL360')
     plt.colorbar()
     plt.show()
 

@@ -13,7 +13,7 @@ from osgeo import ogr
 
 # Load the shapefile area
 driver = ogr.GetDriverByName('ESRI Shapefile')
-shpfile = driver.Open('shpfile/france.shp')
+shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
 # Check if point is inside of shapefile area
