@@ -45,13 +45,14 @@ DEF_VARIABLES = (
 )
 
 # Build a dictionary row object for the output CSV
-def create_row(time, lat, lon, depth, name, value, units):
+def create_row(time, lat, lon, depth, name, long_name, value, units):
     return {
         'Datetime': time,
         'Latitude': lat,
         'Longitude': lon,
         'Depth': depth,
         'Variable': name,
+        'Name': long_name,
         'Value': value,
         'Units': units
     }
@@ -98,22 +99,23 @@ def process_file(filename, variables, points):
                 var = nc.variables[name]
                 value = var[select]
                 units = var.attributes['units']
+                lname = var.attributes['long_name']
                 # Soil Moisture and Soil Temperature values are arrays
                 # containing data at 4 different depths, so 4 distinct rows are added for each
                 if 'SOIL' in name:
-                    rows.append(create_row(time, lat, lon, '0-10cm', name, value[0], units))
-                    rows.append(create_row(time, lat, lon, '10-40cm', name, value[1], units))
-                    rows.append(create_row(time, lat, lon, '40-100cm', name, value[2], units))
-                    rows.append(create_row(time, lat, lon, '100-200cm', name, value[3], units))
-                    # Continue iterating through the variable names
+                    rows.append(create_row(time, lat, lon, '0-10cm', name, lname, value[0], units))
+                    rows.append(create_row(time, lat, lon, '10-40cm', name, lname, value[1], units))
+                    rows.append(create_row(time, lat, lon, '40-100cm', name, lname, value[2], units))
+                    rows.append(create_row(time, lat, lon, '100-200cm', name, lname, value[3], units))
+                    # Continue to the next variable name in the loop
                     continue
             else:
                 # Variable name was not found
                 # so indicate in the output that data is missing
-                value = units = 'Missing'
+                value = units = lname = 'Missing'
             # Append a single row of data for this variable
             # with a null depth value since it is not related to `SOIL`
-            rows.append(create_row(time, lat, lon, None, name, value, units))
+            rows.append(create_row(time, lat, lon, None, name, lname, value, units))
     nc.close()
     return rows
 
@@ -132,7 +134,7 @@ def process_files(data_dir, points, variables):
         rows = process_file(filename, variables, points)
         data.append(rows)
     # Set the fieldnames for the output CSV
-    headers = ['Datetime', 'Latitude', 'Longitude', 'Depth', 'Variable', 'Value', 'Units']
+    headers = ['Datetime', 'Latitude', 'Longitude', 'Depth', 'Variable', 'Name', 'Value', 'Units']
     # Write the extracted data to the output CSV
     with open('output.csv', 'w') as outfile:
         writer = csv.DictWriter(outfile, fieldnames=headers)
