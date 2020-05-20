@@ -16,6 +16,47 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
+# Create a dictionary for flight levels
+# and corresponding values in meters
+flight_levels = {
+    'FL100': 3048,
+    'FL110': 3352,
+    'FL120': 3657,
+    'FL130': 3962,
+    'FL140': 4267,
+    'FL150': 4572,
+    'FL160': 4876,
+    'FL170': 5181,
+    'FL180': 5486,
+    'FL190': 5791,
+    'FL200': 6096,
+    'FL210': 6400,
+    'FL220': 6705,
+    'FL230': 7010,
+    'FL240': 7315,
+    'FL250': 7620,
+    'FL260': 7924,
+    'FL270': 8229,
+    'FL280': 8534,
+    'FL290': 8839,
+    'FL300': 9144,
+    'FL310': 9448,
+    'FL320': 9753,
+    'FL330': 10058,
+    'FL340': 10363,
+    'FL350': 10668,
+    'FL360': 10972,
+    'FL370': 11277,
+    'FL380': 11582,
+    'FL390': 11887,
+    'FL400': 12192,
+    'FL410': 12496,
+    'FL420': 12801,
+    'FL430': 13106,
+    'FL440': 13411,
+    'FL450': 13716
+}
+
 # Check if point is inside of shapefile area
 def area_filter(latlon):
     # Initialize flag
@@ -53,10 +94,10 @@ def parse_data(filepath):
     # Convert the xarray dataset to a dataframe
     df = ds.to_dataframe()
     # Retrieve flight level values
-    flightlevels = df.index.get_level_values('lv_AMSL0')
-    # Filter to a specific flight level:
-    # FL360 = 36000 feet = 10972 meters
-    df = df.loc[(flightlevels == 10972)]
+    flmeters = df.index.get_level_values('lv_AMSL0')
+    # Filter to a specific flight level,
+    # using the lookup dictionary from above
+    df = df.loc[(flmeters == flight_levels['FL360'])]
     # Get longitude values from index
     lons = df.index.get_level_values('lon_0')
     # Map longitude range from (0 to 360) into (-180 to 180)
