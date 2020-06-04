@@ -15,7 +15,7 @@ def get_api_key():
     return api_key
 
 
-def get_point_api_response(lat, lon, bundles=None, time_bundle=None, valid_time_interval=None, api_key=get_api_key()):
+def get_point_api_response(lat, lon, bundles=None, time_bundle=None, valid_time_interval=None, issuance_time=None, api_key=get_api_key()):
     """
     Fetch the point forecast data.
     """
@@ -32,6 +32,8 @@ def get_point_api_response(lat, lon, bundles=None, time_bundle=None, valid_time_
         params['time_bundle'] = time_bundle
     if valid_time_interval:
         params['valid_time_interval'] = valid_time_interval
+    if issuance_time:
+        params['issuance_time'] = issuance_time
 
     headers = {'spire-api-key': api_key}
     response = requests.get(url, headers=headers, params=params)

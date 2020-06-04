@@ -9,39 +9,11 @@ from urllib.parse import urljoin
 from datetime import timedelta
 import dateutil.parser
 import requests
+# local scripts
+import utils
 
 HOST = 'https://api.wx.spire.com'
 API_KEY = os.getenv('spire-api-key')
-
-
-def make_request(api_key, lat, lon, time_bundle, issuance_time):
-    # Build the URL, add the headers and query parameters.
-    url = urljoin(HOST, '/forecast/point')
-    params = {
-        'bundles': 'basic',
-        'time_bundle': time_bundle,
-        'lat': lat,
-        'lon': lon
-    }
-    # Add the `issuance_time` parameter if it is specified
-    if issuance_time != None:
-        params['issuance_time'] = issuance_time
-    # Set the auth header
-    headers = {'spire-api-key': api_key}
-    # Make the API request
-    response = requests.get(url, headers=headers, params=params)
-    # Return the API response
-    return response
-
-
-def get_response_data(response):
-    # Convert the raw response into JSON format
-    json_response = response.json()
-    # Ensure the 'data' field is present
-    if 'data' not in json_response:
-        raise Exception('Response did not contain a data element', json_response)
-    # Return the response data
-    return json_response['data']
 
 
 def get_expected_forecast_size(time_bundle):
@@ -62,11 +34,11 @@ def get_expected_forecast_size(time_bundle):
         raise Exception('Unexpected time bundle', time_bundle)
 
 
-def get_last_complete_issuance(api_key, lat, lon, time_bundle, issuance_time=None):
+def get_last_complete_issuance(api_key, lat, lon, bundles, time_bundle, issuance_time=None):
     # Construct an API request 
-    response = make_request(api_key, lat, lon, time_bundle, issuance_time)
-    # Get the response data
-    data = get_response_data(response)
+    data = utils.get_point_api_response(
+        lat, lon, bundles=bundles, time_bundle=time_bundle, issuance_time=issuance_time, api_key=api_key
+    )
     # Get the expected forecast size for the specified time bundle
     expected_data_size = get_expected_forecast_size(time_bundle)
     # Check if the returned forecast is a complete issuance for this time bundle
@@ -86,10 +58,8 @@ def get_last_complete_issuance(api_key, lat, lon, time_bundle, issuance_time=Non
         prev_issuance_time = dt - timedelta(hours=delta)
         # Convert the issuance time into a string
         it_string = prev_issuance_time.isoformat()
-        # Construct a new API request
-        response = make_request(api_key, lat, lon, time_bundle, it_string)
-        # Get the response data
-        data = get_response_data(response)
+        # Try a new API request with the previous issuance time
+        get_last_complete_issuance(api_key, lat, lon, bundles, time_bundle, it_string)
     # Print the response data
     print('Response data:', data)
 
@@ -103,8 +73,11 @@ if __name__ == '__main__':
                         help='The latitude of the point')
     parser.add_argument('--lon', type=float, default=6.1,
                         help='The longitude of the point')
+    parser.add_argument('--bundles', type=str,
+                        help='The weather bundles for the forecast', default='basic')
     parser.add_argument('--time_bundle', type=str,
                         help='The time bundle for the forecast', default='medium_range_high_freq')
 
     args = parser.parse_args()
-    get_last_complete_issuance(API_KEY, args.lat, args.lon, args.time_bundle)
+    # Make an API request without specifying an issuance time
+    get_last_complete_issuance(API_KEY, args.lat, args.lon, args.bundles, args.time_bundle)
