@@ -1,7 +1,7 @@
 """
 Extract regional values from an Aviation GRIB file at one vertical level
 
-This program extracts clear-air turbulence data from a GRIB file
+This program extracts wind speed data from a GRIB file
 at a single vertical (flight) level. It then crops the data
 to the horizontal area of a provided shapefile.
 """
@@ -10,6 +10,7 @@ import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 from osgeo import ogr
+from math import atan2, pi, sqrt
 
 # Load the shapefile area
 driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -34,6 +35,29 @@ AREA = shpfile.GetLayer()
 #     'lon_0',                # longitude
 #     'lv_AMSL0',             # Specific altitude above mean sea level
 # )
+
+# Compute the wind speed
+def wind_speed_from_u_v(row):
+    u = row['eastward-wind']
+    v = row['northward-wind']
+    return sqrt(pow(u, 2) + pow(v, 2))
+
+# Compute the wind direction
+def wind_direction_from_u_v(row):
+    """
+    Meteorological wind direction
+      90° corresponds to wind from east,
+      180° from south
+      270° from west
+      360° wind from north.
+      0° is used for no wind.
+    """
+    u = row['eastward-wind']
+    v = row['northward-wind']
+    if (u, v) == (0.0, 0.0):
+        return 0.0
+    else:
+        return (180.0 / pi) * atan2(u, v) + 180.0
 
 # Create a dictionary for flight levels
 # and corresponding values in meters
@@ -106,11 +130,12 @@ def parse_data(filepath):
     # print(ds.keys())
     # Rename the clear-air turbulence variable for clarity
     # See DEF_VARIABLES above to lookup variable names
-    ds = ds.rename({'CAT_P0_L102_GLL0': 'turbulence'})
-    # Get only the turbulence values at flight levels
-    # to significantly reduce the volume of data right away,
+    # Rename the wind variables for clarity
+    ds = ds.rename({'UGRD_P0_L102_GLL0': 'eastward-wind'})
+    ds = ds.rename({'VGRD_P0_L102_GLL0': 'northward-wind'})
+    # Get only the wind values to reduce the volume of data,
     # otherwise converting to a dataframe will take a long time
-    ds = ds.get('turbulence')
+    ds = ds.get(['eastward-wind','northward-wind'])
     # Convert the xarray dataset to a dataframe
     df = ds.to_dataframe()
     # Retrieve flight level values
@@ -144,15 +169,19 @@ def parse_data(filepath):
     df['inArea'] = df['point'].map(area_filter)
     # Crop point locations that are not within the shpfile area
     df = df.loc[(df['inArea'] == True)]
-    # Trim the data to just the lat, lon, and turbulence columns
-    df_viz = df.loc[:, ['latitude','longitude','turbulence']]
+    # Compute the wind speed
+    df['wind-speed'] = df.apply (lambda row: wind_speed_from_u_v(row), axis=1)
+    # Compute the wind direction
+    df['wind-dir'] = df.apply (lambda row: wind_direction_from_u_v(row), axis=1)
+    # Trim the data to just the lat, lon, and wind speed columns
+    df_viz = df.loc[:, ['latitude','longitude','wind-speed', 'wind-dir']]
     return df_viz
 
 # Visualize the data
 def plot_data(data):
     x = data['longitude'].values
     y = data['latitude'].values
-    color = data['turbulence'].values
+    color = data['wind-speed'].values
     plt.scatter(
         x,
         y,
@@ -162,7 +191,7 @@ def plot_data(data):
         # edgecolors='gray',
         linewidths=0.1
     )
-    plt.title('Clear-Air Turbulence at FL360')
+    plt.title('Wind Speed at FL360')
     plt.colorbar()
     plt.show()
 

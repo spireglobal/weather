@@ -1,9 +1,8 @@
 """
-Extract regional values from an Aviation GRIB file at one vertical level
+Extract regional values from an Basic GRIB file at one vertical level
 
-This program extracts clear-air turbulence data from a GRIB file
-at a single vertical (flight) level. It then crops the data
-to the horizontal area of a provided shapefile.
+This program extracts wind speed data from a GRIB file.
+It then crops the data to the area of a provided shapefile.
 """
 import argparse
 import xarray as xr
@@ -84,6 +83,7 @@ def parse_data(filepath):
     # Print information on data variables
     # print(ds.keys())
     # Rename the wind variables for clarity
+    # See DEF_VARIABLES above to lookup variable names
     ds = ds.rename({'UGRD_P0_L103_GLL0': 'eastward-wind'})
     ds = ds.rename({'VGRD_P0_L103_GLL0': 'northward-wind'})
     # Get only the wind values to reduce the volume of data,
@@ -121,7 +121,7 @@ def parse_data(filepath):
     df['wind-speed'] = df.apply (lambda row: wind_speed_from_u_v(row), axis=1)
     # Compute the wind direction
     df['wind-dir'] = df.apply (lambda row: wind_direction_from_u_v(row), axis=1)
-    # Trim the data to just the lat, lon, and turbulence columns
+    # Trim the data to just the lat, lon, and wind speed columns
     df_viz = df.loc[:, ['latitude','longitude','wind-speed','wind-dir']]
     return df_viz
 
