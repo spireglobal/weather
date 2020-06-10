@@ -16,6 +16,25 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
+# DEF_VARIABLES = (
+#     'TMP_P0_L102_GLL0',     # Temperature
+#     'RH_P0_L102_GLL0',      # Relative humidity
+#     'TIPD_P0_L100_GLL0',    # Total icing potential diagnostic
+#     'TIPD_P0_L102_GLL0',    # Total icing potential diagnostic
+#     'UGRD_P0_L6_GLL0',      # U-component of wind
+#     'UGRD_P0_L102_GLL0',    # U-component of wind
+#     'VGRD_P0_L6_GLL0',      # V-component of wind
+#     'VGRD_P0_L102_GLL0',    # V-component of wind
+#     'HGT_P0_L6_GLL0',       # Geopotential height
+#     'VIS_P0_L1_GLL0',       # Visibility
+#     'CAT_P0_L102_GLL0',     # Clear air turbulence
+#     'lv_AMSL2',             # Specific altitude above mean sea level
+#     'lv_ISBL1',             # Isobaric surface
+#     'lat_0',                # latitude
+#     'lon_0',                # longitude
+#     'lv_AMSL0',             # Specific altitude above mean sea level
+# )
+
 # Create a dictionary for flight levels
 # and corresponding values in meters
 flight_levels = {
@@ -86,6 +105,7 @@ def parse_data(filepath):
     # Print information on data variables
     # print(ds.keys())
     # Rename the clear-air turbulence variable for clarity
+    # See DEF_VARIABLES above to lookup variable names
     ds = ds.rename({'CAT_P0_L102_GLL0': 'turbulence'})
     # Get only the turbulence values at flight levels
     # to significantly reduce the volume of data right away,

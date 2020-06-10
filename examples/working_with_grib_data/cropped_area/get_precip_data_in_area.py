@@ -16,6 +16,21 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
+# DEF_VARIABLES = (
+#     'TMP_P0_L103_GLL0',        # Temperature
+#     'DPT_P0_L103_GLL0',        # Dew point temperature
+#     'RH_P0_L103_GLL0',         # Relative humidity
+#     'UGRD_P0_L103_GLL0',       # U-component of wind
+#     'VGRD_P0_L103_GLL0',       # V-component of wind
+#     'GUST_P0_L1_GLL0',         # Wind speed (gust)
+#     'PRMSL_P0_L101_GLL0',      # Pressure reduced to MSL
+#     'TMAX_P8_L103_GLL0_max',   # Maximum temperature
+#     'TMIN_P8_L103_GLL0_min',   # Minimum temperature
+#     'APCP_P8_L1_GLL0_acc',     # Total precipitation
+#     'lat_0',                   # latitude
+#     'lon_0',                   # longitude
+# )
+
 # Check if point is inside of shapefile area
 def area_filter(latlon):
     # Initialize flag

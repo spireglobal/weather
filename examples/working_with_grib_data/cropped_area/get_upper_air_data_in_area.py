@@ -16,6 +16,22 @@ driver = ogr.GetDriverByName('ESRI Shapefile')
 shpfile = driver.Open('shpfile/italy.shp')
 AREA = shpfile.GetLayer()
 
+# DEF_VARIABLES = (
+#     'TMP_P0_L100_GLL0',    # Temperature
+#     'RH_P0_L100_GLL0',     # Relative humidity
+#     'CLWMR_P0_L100_GLL0',  # Cloud mixing ratio
+#     'ICMR_P0_L100_GLL0',   # Ice water mixing ratio
+#     'UGRD_P0_L100_GLL0',   # U-component of wind
+#     'VGRD_P0_L100_GLL0',   # V-component of wind
+#     'DZDT_P0_L100_GLL0',   # Vertical velocity (geometric)
+#     'ABSV_P0_L100_GLL0',   # Absolute vorticity
+#     'HGT_P0_L100_GLL0',    # Geopotential height
+#     'lv_ISBL1',            # Isobaric surface
+#     'lat_0',               # latitude
+#     'lon_0',               # longitude
+#     'lv_ISBL0',            # Isobaric surface
+# )
+
 # Check if point is inside of shapefile area
 def area_filter(latlon):
     # Initialize flag
@@ -45,6 +61,7 @@ def parse_data(filepath):
     # Print information on data variables
     # print(ds.keys())
     # Rename the temperature variable for clarity
+    # See DEF_VARIABLES above to lookup variable names
     ds = ds.rename({'TMP_P0_L100_GLL0': 'temperature'})
     # Get only the temperature values at isobaric levels
     # to significantly reduce the volume of data right away,
