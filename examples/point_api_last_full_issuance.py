@@ -14,6 +14,7 @@ import utils
 
 HOST = 'https://api.wx.spire.com'
 API_KEY = os.getenv('spire-api-key')
+ATTEMPTS = 0
 
 
 def get_expected_forecast_size(time_bundle):
@@ -43,23 +44,35 @@ def get_last_complete_issuance(api_key, lat, lon, bundles, time_bundle, issuance
     expected_data_size = get_expected_forecast_size(time_bundle)
     # Check if the returned forecast is a complete issuance for this time bundle
     if len(data) != expected_data_size:
-        # Retrieve the 'issuance_time' from the first item in the data array
-        issuance_time = data[0]['times']['issuance_time']
-        # Convert the 'issuance_time' string into a Python datetime object
-        dt = dateutil.parser.isoparse(issuance_time)
-        # Determine the time delta between the current and previous issuance
-        if 'medium_range' in time_bundle:
-            # Medium range forecasts are issued every 12 hours
-            delta = 12
+        # Returned forecast is not a complete issuance,
+        # so we will try again with the previous issuance
+        # as long as we don't exceed the maximum number of attempts
+        if ATTEMPTS < 4:
+            # Increment number of retries
+            ATTEMPTS += 1
+            # Retrieve the 'issuance_time' from the first item in the data array
+            issuance_time = data[0]['times']['issuance_time']
+            # Convert the 'issuance_time' string into a Python datetime object
+            dt = dateutil.parser.isoparse(issuance_time)
+            # Determine the time delta between the current and previous issuance
+            if 'medium_range' in time_bundle:
+                # Medium range forecasts are issued every 12 hours
+                delta = 12
+            else:
+                # Short range forecasts are issed every 6 hours
+                delta = 6
+            # Get the previous issuance time
+            prev_issuance_time = dt - timedelta(hours=delta)
+            # Convert the issuance time into a string
+            it_string = prev_issuance_time.isoformat()
+            # Try a new API request with the previous issuance time
+            get_last_complete_issuance(api_key, lat, lon, bundles, time_bundle, it_string)
         else:
-            # Short range forecasts are issed every 6 hours
-            delta = 6
-        # Get the previous issuance time
-        prev_issuance_time = dt - timedelta(hours=delta)
-        # Convert the issuance time into a string
-        it_string = prev_issuance_time.isoformat()
-        # Try a new API request with the previous issuance time
-        get_last_complete_issuance(api_key, lat, lon, bundles, time_bundle, it_string)
+            # Maximum number of attempts has been exceeded.
+            # This should never be the case, but is added to be robust.
+            # Rather than continuing to request older issuance times,
+            # simply exit with a failure message.
+            print('Last complete issuance was not found.')
     # Print the response data
     print('Response data:', data)
 
