@@ -9,11 +9,18 @@ import argparse
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
-from osgeo import ogr
-
+from osgeo.ogr import GetDriverByName
+import os
+import sys
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.join(dir_path, os.pardir)
+sys.path.append(os.path.join(parent,'..'))
+from conversions import wind_speed_from_u_v, wind_direction_from_u_v
+from utils_grib import coarse_geo_filter, precise_geo_filter
 # Load the shapefile area
-driver = ogr.GetDriverByName('ESRI Shapefile')
-shpfile = driver.Open('shpfile/italy.shp')
+filename = os.path.join(dir_path, 'shpfile/italy.shp')
+driver = GetDriverByName('ESRI Shapefile')
+shpfile = driver.Open(filename)
 AREA = shpfile.GetLayer()
 
 # DEF_VARIABLES = (
@@ -31,27 +38,6 @@ AREA = shpfile.GetLayer()
 #     'lon_0',                   # longitude
 # )
 
-# Check if point is inside of shapefile area
-def area_filter(latlon):
-    # Initialize flag
-    point_in_area = False
-    # Parse coordinates and convert to floats
-    lat = float(latlon[0])
-    lon = float(latlon[1])
-    # Create a point geometry
-    point = ogr.Geometry(ogr.wkbPoint)
-    point.AddPoint(lon, lat)
-    # Check if the point is in any of the shpfile's features
-    for i in range(AREA.GetFeatureCount()):
-        feature = AREA.GetFeature(i)
-        if feature.geometry().Contains(point):
-            # This point is within a feature
-            point_in_area = True
-            # Break out of the loop
-            break
-    # Return flag indicating whether point is in the area
-    return point_in_area
-
 # Load and filter grib data to get regional precipitation
 def parse_data(filepath1, filepath2):
     # Load the grib files into xarray datasets
@@ -67,32 +53,12 @@ def parse_data(filepath1, filepath2):
     # Since the grib data is forecast-total accumulated precipitation,
     # subtract the older value from the newer one to get fixed-interval values
     df['precip'] = df2['APCP_P8_L1_GLL0_acc'] - df1['APCP_P8_L1_GLL0_acc']
-    # Get longitude values from index
-    lons = df.index.get_level_values('lon_0')
-    # Map longitude range from (0 to 360) into (-180 to 180)
-    maplon = lambda lon: (lon - 360) if (lon > 180) else lon
-    # Create new longitude and latitude columns in the dataframe
-    df['longitude'] = lons.map(maplon)
-    df['latitude'] = df.index.get_level_values('lat_0')
-    # Get the area's bounding box
-    extent = AREA.GetExtent()
-    minlon = extent[0]
-    maxlon = extent[1]
-    minlat = extent[2]
-    maxlat = extent[3]
     # Perform an initial coarse filter on the global dataframe
     # by limiting the data to the area's bounding box,
-    # thereby reducing the total processing time of the `area_filter`
-    latfilter = ((df['latitude'] >= minlat) & (df['latitude'] <= maxlat))
-    lonfilter = ((df['longitude'] >= minlon) & (df['longitude'] <= maxlon))
-    # Apply filters to the dataframe
-    df = df.loc[latfilter & lonfilter]
-    # Create tuple column of latitude and longitude points
-    df['point'] = list(zip(df['latitude'], df['longitude']))
-    # Create boolean column for whether the shpfile area contains the point
-    df['inArea'] = df['point'].map(area_filter)
-    # Drop point locations that are not within the shpfile area
-    df = df.loc[(df['inArea'] == True)]
+    # thereby reducing the total processing time of the `precise_geo_filter`
+    df = coarse_geo_filter(df, AREA)
+    # Perform the precise filter to remove data outside of the shapefile area
+    df = precise_geo_filter(df, AREA)
     # Trim the data to just the lat, lon, and precipitation columns
     df_viz = df.loc[:, ['latitude','longitude','precip']]
     # Convert from millimeters to inches

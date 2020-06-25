@@ -9,11 +9,18 @@ import argparse
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
-from osgeo import ogr
-
+from osgeo.ogr import GetDriverByName
+import os
+import sys
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.join(dir_path, os.pardir)
+sys.path.append(os.path.join(parent,'..'))
+from conversions import wind_speed_from_u_v, wind_direction_from_u_v
+from utils_grib import coarse_geo_filter, precise_geo_filter
 # Load the shapefile area
-driver = ogr.GetDriverByName('ESRI Shapefile')
-shpfile = driver.Open('shpfile/italy.shp')
+filename = os.path.join(dir_path, 'shpfile/italy.shp')
+driver = GetDriverByName('ESRI Shapefile')
+shpfile = driver.Open(filename)
 AREA = shpfile.GetLayer()
 
 # DEF_VARIABLES = (
@@ -32,26 +39,15 @@ AREA = shpfile.GetLayer()
 #     'lv_ISBL0',            # Isobaric surface
 # )
 
-# Check if point is inside of shapefile area
-def area_filter(latlon):
-    # Initialize flag
-    point_in_area = False
-    # Parse coordinates and convert to floats
-    lat = float(latlon[0])
-    lon = float(latlon[1])
-    # Create a point geometry
-    point = ogr.Geometry(ogr.wkbPoint)
-    point.AddPoint(lon, lat)
-    # Check if the point is in any of the shpfile's features
-    for i in range(AREA.GetFeatureCount()):
-        feature = AREA.GetFeature(i)
-        if feature.geometry().Contains(point):
-            # This point is within a feature
-            point_in_area = True
-            # Break out of the loop
-            break
-    # Return flag indicating whether point is in the area
-    return point_in_area
+# Create a dictionary for isobaric levels in hPa
+# and corresponding values in pascals
+isobaric_levels = {
+    '1000hPa': 100000, '950hPa': 95000, '925hPa': 92500, '900hPa': 90000,
+    '850hPa':  85000,  '800hPa': 80000, '700hPa': 70000, '600hPa': 60000,
+    '500hPa':  50000,  '400hPa': 40000, '300hPa': 30000, '250hPa': 25000,
+    '200hPa':  20000,  '150hPa': 15000, '100hPa': 10000, '70hPa':  7000,
+    '50hPa':   5000,   '30hPa':  3000,  '20hPa':  2000
+}
 
 # Load and filter grib data to get regional temperature
 # at the specified isobaric level
@@ -72,34 +68,14 @@ def parse_data(filepath):
     # Retrieve isobaric level values
     isblevels = df.index.get_level_values('lv_ISBL0')
     # Filter to a specific isobaric level:
-    # 2000 pascal (20 hPa)
-    df = df.loc[(isblevels == 2000)]
-    # Get longitude values from index
-    lons = df.index.get_level_values('lon_0')
-    # Map longitude range from (0 to 360) into (-180 to 180)
-    maplon = lambda lon: (lon - 360) if (lon > 180) else lon
-    # Create new longitude and latitude columns in the dataframe
-    df['longitude'] = lons.map(maplon)
-    df['latitude'] = df.index.get_level_values('lat_0')
-    # Get the area's bounding box
-    extent = AREA.GetExtent()
-    minlon = extent[0]
-    maxlon = extent[1]
-    minlat = extent[2]
-    maxlat = extent[3]
+    # 20 hPa (2000 pascal)
+    df = df.loc[(isblevels == isobaric_levels['20hPa'])]
     # Perform an initial coarse filter on the global dataframe
     # by limiting the data to the area's bounding box,
-    # thereby reducing the total processing time of the `area_filter`
-    latfilter = ((df['latitude'] >= minlat) & (df['latitude'] <= maxlat))
-    lonfilter = ((df['longitude'] >= minlon) & (df['longitude'] <= maxlon))
-    # Apply filters to the dataframe
-    df = df.loc[latfilter & lonfilter]
-    # Create tuple column of latitude and longitude points
-    df['point'] = list(zip(df['latitude'], df['longitude']))
-    # Create boolean column for whether the shpfile area contains the point
-    df['inArea'] = df['point'].map(area_filter)
-    # Crop point locations that are not within the shpfile area
-    df = df.loc[(df['inArea'] == True)]
+    # thereby reducing the total processing time of the `precise_geo_filter`
+    df = coarse_geo_filter(df, AREA)
+    # Perform the precise filter to remove data outside of the shapefile area
+    df = precise_geo_filter(df, AREA)
     # Trim the data to just the lat, lon, and temperature columns
     df_viz = df.loc[:, ['latitude','longitude','temperature']]
     # Convert from Kelvin to Celsius
@@ -117,7 +93,6 @@ def plot_data(data):
         c=color,
         s=10,
         cmap='coolwarm',
-        # edgecolors='gray',
         linewidths=0.1
     )
     plt.title('Temperature (C) at 20 hPa')
