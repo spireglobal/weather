@@ -68,8 +68,8 @@ def parse_data(filepath):
     # Retrieve isobaric level values
     isblevels = df.index.get_level_values('lv_ISBL0')
     # Filter to a specific isobaric level:
-    # 20 hPa (2000 pascal)
-    df = df.loc[(isblevels == isobaric_levels['20hPa'])]
+    # 500 hPa (50000 pascal)
+    df = df.loc[(isblevels == isobaric_levels['500hPa'])]
     # Perform an initial coarse filter on the global dataframe
     # by limiting the data to the area's bounding box,
     # thereby reducing the total processing time of the `precise_geo_filter`
@@ -95,7 +95,7 @@ def plot_data(data):
         cmap='coolwarm',
         linewidths=0.1
     )
-    plt.title('Temperature (C) at 20 hPa')
+    plt.title('Temperature (C) at 500 hPa')
     plt.colorbar()
     plt.show()
 
