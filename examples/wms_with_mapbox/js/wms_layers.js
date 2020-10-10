@@ -44,12 +44,12 @@ function addWMSLayer(layer_name, style, layer_index, times, legend_url) {
 		var url = buildWMSLayerRequest(layer_name, style, layer_index, time);
 		// add the WMS layer to the Mapbox basemap
 		addLayerToMap(layer_index, url);
-		// // add the WMS layer to the OpenLayers map
-		// window.ol_map.addLayer(layer);
-		// make legend button visible
-		document.getElementById('show_legend_' + layer_index).style.display = 'inline-block';
-		// add legend image to popup div
-		document.getElementById('legend_wms_' + layer_index).style.backgroundImage = 'url(' + legend_url + ')';
+		if (legend_url != 'none') {
+			// make legend button visible
+			document.getElementById('show_legend_' + layer_index).style.display = 'inline-block';
+			// add legend image to popup div
+			document.getElementById('legend_wms_' + layer_index).style.backgroundImage = 'url(' + legend_url + ')';
+		}
 	}
 }
 

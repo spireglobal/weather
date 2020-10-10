@@ -91,9 +91,13 @@ function getWMSCapabilities(bundle) {
 						// get the name of each style for this variable
 						styleOptions.forEach(function(style) {
 							var styleName = style['Name'];
-							var legend = style['LegendURL'][0];
-							var legendURL = legend['OnlineResource'];
-							stylesAndLegends[styleName] = legendURL + '&spire-api-key=' + window.SPIRE_API_KEY;
+							var legend = style['LegendURL'];
+							if (legend) {
+								var legendURL = legend[0]['OnlineResource'];
+								stylesAndLegends[styleName] = legendURL + '&spire-api-key=' + window.SPIRE_API_KEY;
+							} else {
+								stylesAndLegends[styleName] = 'none';
+							}
 						});
 						// keep track of the available variables for this hour in our global object
 						window.Full_WMS_XML[bundle][dateText][hourText][displayName] = {
