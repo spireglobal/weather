@@ -1,0 +1,110 @@
+body {
+  display: none;
+  min-width: 800px;
+  background: #283446;
+}
+h1 {
+  pointer-events: none;
+}
+#map {
+  height: 900px;
+  width: 100%;
+}
+#logo {
+  position: absolute;
+  z-index: 99;
+  top: 30px;
+  left: 30px;
+  cursor: pointer;
+  border-radius: 2px;
+  background-image: url('../img/spire_logo.png');
+  background-repeat: no-repeat;
+  background-size: 50px 50px;
+  height: 50px;
+  width: 50px;
+}
+.popup {
+  display: none;
+  position: absolute;
+  background-color: #22293d;
+  font-family: monospace;
+  padding: 40px;
+  border: 2px solid white;
+  border-radius: 10px;
+  overflow: hidden;
+  top: 110px;
+  left: 110px;
+  max-width: 800px;
+  -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+}
+.title {
+  color: #FFFFFF;
+  text-align: center;
+  text-decoration: underline;
+  font-family: 'serif';
+}
+#buttons {
+  position: absolute;
+  top: 30px;
+  margin-left: 90px;
+  z-index: 99;
+  padding: 3px;
+  height: 20px;
+}
+button {
+  cursor: pointer;
+  outline: none;
+  color: white;
+  padding: 7px;
+  margin-left: 4px;
+  font-weight: bold;
+  background-color: rgba(0,60,136,0.5);
+  box-shadow: 3px 3px rgba(0,0,0,0.7);
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+  user-select: none;
+}
+button:hover {
+  color: white;
+  background-color: rgba(0,60,136,0.7);
+  box-shadow: 2px 2px rgba(0,0,0,0.9);
+}
+button:active {
+  color: white;
+  background-color: rgba(0,60,136,1.0);
+  box-shadow: 1px 1px rgba(0,0,0,1.0);
+}
+button.pressed {
+  color: white;
+  box-shadow: 1px 1px rgba(0,0,0,1.0);
+  background-color: rgba(0,60,136,1.0);
+}
+.remove {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  color: #000000;
+  margin-right: 10px;
+  background: #ffffff;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border-radius: 10px;
+  margin: 10px;
+}
+.remove:hover {
+  background: rgba(210, 32, 31, 0.8);
+}
+.remove:active {
+  background: rgba(210, 32, 31, 1.0);
+}
+#configureWMS {
+  border: none;
+}
+#configureWMS {
+  border-radius: 0 2px 2px 0;
+}

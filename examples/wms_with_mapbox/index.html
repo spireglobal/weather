@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0">
+    <title> Spire Data Visualizer </title>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="img/spire_logo.png">
+    <!-- Mapbox GL JS -->
+    <script type="text/javascript" src="lib/mapbox-gl-v1.11.0.js"></script>
+    <link rel="stylesheet"  href="lib/mapbox-gl-v1.11.0.css"/>
+    <!-- GetCapabilities XML payload parser:
+    https://github.com/w8r/wms-capabilities -->
+    <script type="text/javascript" src="lib/wms-capabilities.min.js"></script>
+    <!-- simple w3schools.com snippet for making a DOM element draggable -->
+    <script type="text/javascript" src="lib/draggable-element.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <link rel="stylesheet" type="text/css" href="css/wms_widget.css" />
+    <!-- Custom Map JS -->
+    <script type="text/javascript" src="js/get_wms_capabilities.js"></script>
+    <script type="text/javascript" src="js/wms_layers.js"></script>
+    <!-- Custom JS executed when the page and all DOM elements have loaded -->
+    <script type="text/javascript" src="js/event_handlers.js"></script>
+    <script type="text/javascript" src="js/on_load.js"></script>
+  </head>
+  <body>
+    <!-- the map component -->
+    <div id="map" class="map"></div>
+    <!----------------->
+    <!-- Top of App  -->
+    <!----------------->
+    <!-- Spire logo in the top left of the map element -->
+    <a id="logo" href="https://www.spire.com/" target="_blank" title="Spire Global"></a>
+    <!-- buttons near the top left of the map element -->
+    <div id="buttons">
+      <!-- button to trigger popup for selecting WMS layer -->
+      <button id="configureWMS" class="pressed">Configure WMS</button>
+    </div>
+    <!--------------------->
+    <!-- WMS Time Popup  -->
+    <!--------------------->
+    <div id="wmsTimePopup">
+      <h1 id="wms_time_display"></h1>
+    </div>
+    <!------------------------------->
+    <!-- WMS Layers Legend Popups  -->
+    <!------------------------------->
+    <div id="legend_wms_0" class="legendPopup popup"></div>
+    <div id="legend_wms_1" class="legendPopup popup"></div>
+    <!----------------------->
+    <!-- WMS Layers Popup  -->
+    <!----------------------->
+    <div id="wmsPopup" class="popup">
+      <h1 id="wms_title" class="title">Spire Weather WMS Layers</h1>
+      <button id="closeWMSPopup" class="remove">
+        X
+      </button>
+      <!-- container for WMS dropdown selectors -->
+      <div class="wms_dropdowns">
+        <!-- base layer configuration -->
+        <div class="wms_config">
+          <!-- first WMS selector dropdown -->
+          <div class="wms_dd_name">First Layer:</div>
+          <select id='wms_layer_select_0' class='wms_layer_select'>
+            <option value='none'>Loading Available Layers...</option>
+          </select>
+          <!-- first style selector dropdown -->
+          <div id="wms_config_style_0" class="wms_config_style">
+            <div class="wms_dd_name">
+              Style:
+              <button id="show_legend_0">Legend</button>
+            </div>
+            <select id='wms_style_select_0' class='wms_style_select'>
+              <option value='none'>None</option>
+            </select>
+          </div>
+        </div>
+        <!-- overlay layer configuration -->
+        <div class="wms_config">
+          <!-- second WMS selector dropdown -->
+          <div class="wms_dd_name">Second Layer:</div>
+          <select id='wms_layer_select_1' class='wms_layer_select'>
+            <option value='none'>Loading Available Layers...</option>
+          </select>
+          <!-- second style selector dropdown -->
+          <div id="wms_config_style_1" class="wms_config_style">
+            <div class="wms_dd_name">
+              Style:
+              <button id="show_legend_1">Legend</button>
+            </div>
+            <select id='wms_style_select_1' class='wms_style_select'>
+              <option value='none'>None</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- controls for playing through WMS time -->
+      <div id="wms_time_controls">
+        <div id="wms_time_buttons">
+          <div id="wms_play_stop" class="play"></div>
+          <div id="time_slider_display"></div>
+          <div id="popout_time"></div>
+        </div>
+        <input id="wms_time_slider" type="range" min="0" max="50" value="0" class="slider">
+      </div>
+    </div>
+  </body>
+</html>
