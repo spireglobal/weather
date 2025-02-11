@@ -1,7 +1,7 @@
 """
 This script will download all files from a Spire data export in parallel.
 
-For more detail on Spire weather archive requests and retrievals see 
+For more detail on Spire weather archive requests and retrievals see
 our developer documentation and getting started guides:
 https://developers.wx.spire.com/swagger_ui/index.html#/Archive%20Data/get_archive_file_list
 https://developers.wx.spire.com/getting-started.pdf
@@ -29,6 +29,14 @@ parallelism = 8
 # The local path where files will be downloaded
 prefix = "."
 
+# Enable extra logging
+debug = False
+
+
+def debug_log(msg: str) -> None:
+    if debug:
+        print(msg)
+
 
 def get_file_list(export_id: str) -> list[str]:
     resp = get(f"{base_url}/{export_id}")
@@ -40,19 +48,28 @@ def get_file_list(export_id: str) -> list[str]:
 
 def download_file(export_id: str, path: str, local_path: str) -> bool:
     prefix = Path(local_path)
-    with get(f"{base_url}/{export_id}/{path}", allow_redirects=True, stream=True) as resp:
+    url = f"{base_url}/{export_id}/{path}"
+
+    debug_log(f"Getting {url}...")
+    with get(url, allow_redirects=True, stream=True) as resp:
         if resp.status_code == 404:
+            debug_log("Not found")
             return False
+
         download_path = prefix / path
+        debug_log(f"Checking {download_path}")
         if download_path.exists():
+            debug_log(f"Skipping {download_path}")
             return True
 
+        debug_log(f"Saving {download_path}")
         try:
             download_path.parent.mkdir(parents=True, exist_ok=True)
-            with download_path.open("rb") as f:
+            with download_path.open("wb") as f:
                 for chunk in resp.iter_content(chunk_size=8192):
                     f.write(chunk)
-        except BaseException:
+        except BaseException as e:
+            debug_log(f"Download failed with {str(e)}")
             if download_path.exists():
                 download_path.unlink()
                 return False
